@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Ridgeview Beacon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- ============================================================
+     FIREBASE SETUP
+     1. Go to your Firebase project → Project settings → scroll to
+        "Your apps" → add a Web app → copy the config object shown.
+     2. Paste it below, replacing the placeholder values.
+     3. In the Firebase console, enable Authentication → Sign-in method
+        → Email/Password, and create a Firestore Database (test mode).
+     That's it — nothing else in this file needs to change.
+============================================================ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyC-9Cq75S2dhj_pTJ6Vz838p23ERAT-X2Y",
+    authDomain: "binhi-web.firebaseapp.com",
+    projectId: "binhi-web",
+    storageBucket: "binhi-web.firebasestorage.app",
+    messagingSenderId: "462447967389",
+    appId: "1:462447967389:web:dbce0ee68202600b1d6874"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+</script>
+<style>
+  :root{
+    --paper:#F5F6F0;
+    --paper-dark:#E7EBE1;
+    --ink:#13201A;
+    --ink-soft:#4B5A50;
+    --rule:#13201A;
+    --rule-faint:#C9D2C4;
+    --pine:#0E4432;
+    --leaf:#2E9E5B;
+    --lime:#C6E24C;
+    --gold:#E8B923;
+    --crimson:#B3261E;
+    --slate:#33475A;
+    --white:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', system-ui, sans-serif;
+    line-height:1.55;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  h1,h2,h3,h4{font-family:'Barlow Condensed', sans-serif; font-weight:800; margin:0; color:var(--ink); text-transform:uppercase; letter-spacing:.005em;}
+  a{color:inherit; text-decoration:none;}
+  button{font-family:inherit; cursor:pointer;}
+  input,textarea,select{font-family:'Inter', system-ui, sans-serif;}
+
+  /* ---------- Masthead ---------- */
+  .masthead-top{
+    display:flex; justify-content:space-between; align-items:center;
+    max-width:1100px; margin:0 auto; padding:8px 20px;
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.04em;
+    color:var(--white); text-transform:uppercase; background:var(--pine);
+  }
+  .masthead{
+    background:var(--pine);
+    border-bottom:5px solid var(--lime);
+  }
+  .masthead-inner{
+    max-width:1100px; margin:0 auto; padding:10px 20px 22px;
+    display:flex; align-items:center; gap:18px;
+  }
+  .logo-slot{
+    flex:0 0 auto; width:56px; height:56px; border:2px dashed rgba(255,255,255,.45);
+    border-radius:6px; display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono',monospace; font-size:9px; color:rgba(255,255,255,.55);
+    text-align:center; line-height:1.3; letter-spacing:.03em; text-transform:uppercase;
+  }
+  .masthead-text{ flex:1; }
+  .masthead h1{
+    font-size:clamp(34px,6.5vw,58px); font-weight:900; letter-spacing:.01em; color:var(--white); line-height:1;
+  }
+  .masthead .tagline{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--lime); margin-top:6px;
+  }
+  nav{
+    max-width:1100px; margin:0 auto; padding:0 20px;
+    display:flex; gap:0; background:var(--leaf);
+    overflow-x:auto;
+  }
+  nav button{
+    background:none; border:none; padding:13px 16px; font-size:13.5px;
+    letter-spacing:.04em; text-transform:uppercase; font-family:'Barlow Condensed',sans-serif; font-weight:700;
+    color:rgba(255,255,255,.85); border-bottom:3px solid transparent; white-space:nowrap;
+  }
+  nav button.active{ color:var(--white); border-bottom-color:var(--lime); background:rgba(0,0,0,.1); }
+  nav button:hover{ color:var(--white); }
+  .nav-spacer{flex:1;}
+  .nav-admin-link{ color:rgba(255,255,255,.85) !important; }
+
+  main{ max-width:1100px; margin:0 auto; padding:28px 20px 80px; min-height:50vh; }
+
+  /* ---------- Home / front page ---------- */
+  .front-grid{ display:grid; grid-template-columns:1.6fr 1fr; gap:36px; }
+  @media (max-width:760px){ .front-grid{grid-template-columns:1fr;} }
+
+  .kicker{
+    font-family:'Barlow Condensed', sans-serif; font-size:12px; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--white); font-weight:800; margin-bottom:8px;
+    display:inline-block; background:var(--pine); padding:3px 10px;
+  }
+  .lead-headline{ font-size:clamp(28px,4vw,46px); line-height:1.02; margin-bottom:10px; text-transform:none; }
+  .lead-dek{ font-size:18px; color:var(--ink-soft); font-style:normal; margin-bottom:10px; font-family:'Inter',sans-serif; }
+  .byline{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; }
+  .lead-image{ width:100%; aspect-ratio:16/9; object-fit:cover; margin:16px 0; border:1px solid var(--rule); background:var(--paper-dark); }
+  .lead-body{ font-size:16.5px; column-gap:28px; }
+  .lead-body p{ margin:0 0 14px; }
+
+  .rail{ border-left:1px solid var(--rule); padding-left:28px; }
+  .rail h3.rail-title{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; text-transform:uppercase;
+    letter-spacing:.1em; border-bottom:2px solid var(--ink); padding-bottom:8px; margin-bottom:16px;
+  }
+  .rail-item{ padding:14px 0; border-bottom:1px solid var(--rule-faint); cursor:pointer; }
+  .rail-item:last-child{border-bottom:none;}
+  .rail-item h4{ font-size:18px; line-height:1.2; text-transform:none; }
+  .rail-item h4:hover{ color:var(--leaf); }
+  .rail-item .byline{ margin-top:6px; }
+
+  .story-card{ cursor:pointer; }
+  .story-card:hover .lead-headline, .story-card:hover h4{ color:var(--leaf); }
+
+  hr.rule{ border:none; border-top:1px solid var(--rule); margin:34px 0; }
+
+  /* ---------- News grid / archive ---------- */
+  .page-title{ font-size:38px; margin-bottom:4px; text-transform:none; }
+  .page-sub{ color:var(--ink-soft); font-style:italic; margin-bottom:24px; }
+  .filters{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:26px; }
+  .filters button{
+    border:1px solid var(--rule); background:var(--white); padding:6px 14px;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.05em;
+  }
+  .filters button.active{ background:var(--pine); color:var(--white); border-color:var(--pine); }
+  .news-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:30px 28px; }
+  @media (max-width:900px){ .news-grid{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:600px){ .news-grid{grid-template-columns:1fr;} }
+  .news-card img{ width:100%; aspect-ratio:4/3; object-fit:cover; border:1px solid var(--rule); margin-bottom:10px; background:var(--paper-dark); }
+  .news-card h4{ font-size:20px; line-height:1.2; margin-bottom:6px; text-transform:none; }
+  .news-card .dek{ font-size:14.5px; color:var(--ink-soft); margin-bottom:8px; }
+  .empty-note{ color:var(--ink-soft); font-style:italic; padding:30px 0; }
+
+  /* ---------- Article detail ---------- */
+  .back-link{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--slate); display:inline-block; margin-bottom:18px; }
+  .article-head{ max-width:760px; margin:0 auto 20px; text-align:left; }
+  .article-title{ font-size:clamp(30px,4.5vw,50px); line-height:1.0; margin-bottom:10px; text-transform:none; }
+  .article-dek{ font-size:19px; font-style:italic; color:var(--ink-soft); margin-bottom:12px; }
+  .article-meta{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; border-top:1px solid var(--rule); border-bottom:1px solid var(--rule); padding:10px 0; }
+  .article-image{ width:100%; max-width:760px; margin:22px auto; display:block; aspect-ratio:16/9; object-fit:cover; border:1px solid var(--rule); background:var(--paper-dark); }
+  .article-body{ max-width:760px; margin:0 auto; font-size:18px; }
+  .article-body p{ margin:0 0 18px; }
+  .article-body p:first-of-type::first-letter{
+    font-family:'Barlow Condensed',sans-serif; font-size:58px; float:left; line-height:.8; padding:6px 8px 0 0; font-weight:900; color:var(--pine);
+  }
+
+  /* ---------- About / staff ---------- */
+  .about-body{ max-width:720px; font-size:18px; }
+  .about-body p{ margin:0 0 16px; }
+  .staff-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:26px; margin-top:20px; }
+  @media (max-width:760px){ .staff-grid{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:480px){ .staff-grid{grid-template-columns:1fr;} }
+  .staff-card{ text-align:left; }
+  .staff-photo{ width:100%; aspect-ratio:1; object-fit:cover; border:1px solid var(--rule); margin-bottom:10px; background:var(--paper-dark); }
+  .staff-name{ font-size:19px; margin-bottom:2px; text-transform:none; }
+  .staff-role{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--leaf); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px; }
+  .staff-bio{ font-size:14.5px; color:var(--ink-soft); }
+  .section-groups{ margin-top:10px; }
+  .group-title{ font-family:'IBM Plex Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:.1em; border-bottom:2px solid var(--ink); padding-bottom:8px; margin:34px 0 4px; }
+
+  /* ---------- Contact ---------- */
+  .contact-box{ max-width:500px; border:1px solid var(--rule); padding:26px; background:var(--white); }
+  .contact-box div{ margin-bottom:14px; font-size:15.5px; }
+  .contact-box .label{ font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; color:var(--ink-soft); letter-spacing:.06em; display:block; margin-bottom:2px; }
+
+  /* ---------- Buttons / forms ---------- */
+  .btn{ display:inline-block; border:1px solid var(--ink); background:var(--ink); color:var(--paper); padding:9px 18px; font-family:'IBM Plex Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
+  .btn:hover{ background:var(--leaf); border-color:var(--leaf); }
+  .btn.secondary{ background:none; color:var(--ink); }
+  .btn.secondary:hover{ background:var(--ink); color:var(--paper); }
+  .btn.danger{ background:none; border-color:var(--crimson); color:var(--crimson); }
+  .btn.danger:hover{ background:var(--crimson); color:var(--white); }
+  .btn.small{ padding:5px 12px; font-size:11px; }
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); margin-bottom:5px; }
+  .field input, .field textarea, .field select{
+    width:100%; padding:9px 10px; border:1px solid var(--rule); background:var(--white); font-size:15px; color:var(--ink);
+  }
+  .field textarea{ resize:vertical; min-height:110px; }
+  .field-row{ display:flex; gap:14px; }
+  .field-row > .field{ flex:1; }
+  .hint{ font-size:12.5px; color:var(--ink-soft); margin-top:4px; }
+
+  /* ---------- Modal ---------- */
+  .overlay{ position:fixed; inset:0; background:rgba(26,24,21,.55); display:flex; align-items:center; justify-content:center; padding:20px; z-index:50; }
+  .modal{ background:var(--paper); border:1px solid var(--rule); max-width:420px; width:100%; padding:30px; max-height:90vh; overflow:auto; }
+  .modal h2{ font-size:24px; margin-bottom:4px; }
+  .modal .sub{ font-size:13px; color:var(--ink-soft); font-style:italic; margin-bottom:20px; }
+  .modal-close{ float:right; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft); }
+  .error-msg{ color:var(--crimson); font-size:13px; margin-top:8px; font-family:'IBM Plex Mono',monospace; }
+  .toast{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--paper); padding:11px 22px; font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:.03em; z-index:80; box-shadow:0 6px 18px rgba(0,0,0,.25); }
+
+  /* ---------- Admin ---------- */
+  .admin-bar{ background:var(--pine); color:var(--white); }
+  .admin-bar-inner{ max-width:1100px; margin:0 auto; padding:8px 20px; display:flex; align-items:center; gap:14px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; }
+  .admin-bar-inner .role-badge{ background:var(--leaf); padding:2px 8px; text-transform:uppercase; letter-spacing:.05em; font-size:10px; }
+  .admin-bar-inner .spacer{flex:1;}
+  .admin-bar-inner button{ background:none; border:1px solid var(--paper); color:var(--paper); padding:4px 12px; font-family:inherit; font-size:11px; text-transform:uppercase; }
+  .admin-tabs{ display:flex; gap:4px; border-bottom:1px solid var(--rule); margin-bottom:24px; flex-wrap:wrap; }
+  .admin-tabs button{ background:none; border:none; padding:10px 16px; font-family:'IBM Plex Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); border-bottom:3px solid transparent; }
+  .admin-tabs button.active{ color:var(--pine); border-bottom-color:var(--leaf); font-weight:700; }
+  .admin-table{ width:100%; border-collapse:collapse; font-size:14.5px; }
+  .admin-table th{ text-align:left; font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); border-bottom:2px solid var(--ink); padding:8px 6px; }
+  .admin-table td{ padding:10px 6px; border-bottom:1px solid var(--rule-faint); vertical-align:top; }
+  .admin-table tr:hover td{ background:var(--paper-dark); }
+  .row-actions{ display:flex; gap:8px; }
+  .admin-card{ border:1px solid var(--rule); background:var(--white); padding:22px; margin-bottom:20px; max-width:640px; }
+  .badge{ font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; padding:2px 7px; border:1px solid var(--rule); letter-spacing:.05em; }
+  .badge.admin{ border-color:var(--pine); color:var(--pine); }
+  .badge.staff{ border-color:var(--slate); color:var(--slate); }
+
+  footer{ border-top:4px double var(--rule); margin-top:60px; padding:26px 20px 40px; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-soft); }
+  footer button{ background:none; border:none; color:var(--slate); text-decoration:underline; font-family:inherit; font-size:11.5px; }
+  .loading-note{ text-align:center; padding:60px 20px; color:var(--ink-soft); font-style:italic; }
+
+  :focus-visible{ outline:2px solid var(--leaf); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function(){
+
+/* =========================================================
+   CONSTANTS / STORAGE HELPERS
+========================================================= */
+const K = {
+  accounts: 'accounts',
+  articles: 'articles',
+  staff: 'staff',
+  about: 'about',
+  settings: 'settings'
+};
+
+// Site content lives in Firestore under collection "beacon", one doc per key,
+// each doc shaped as { data: <value> }. This keeps the rest of the app's
+// logic (which just calls getShared/setShared) unchanged.
+async function getShared(key, fallback){
+  try{
+    const snap = await db.collection('beacon').doc(key).get();
+    return snap.exists ? snap.data().data : fallback;
+  }catch(e){ console.error('firestore get failed', key, e); return fallback; }
+}
+async function setShared(key, value){
+  try{ await db.collection('beacon').doc(key).set({ data: value }); }
+  catch(e){ console.error('firestore set failed', key, e); }
+}
+
+// Firebase Auth requires an email. Usernames are mapped to a fake
+// address so people can still log in with a plain username.
+function usernameToEmail(username){
+  return username.trim().toLowerCase().replace(/[^a-z0-9._-]/g,'') + '@beacon.local';
+}
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function esc(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtDate(iso){
+  try{ return new Date(iso).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}); }
+  catch(e){ return iso; }
+}
+function paragraphs(body){
+  return (body||'').split(/\n\s*\n/).map(p=>`<p>${esc(p).replace(/\n/g,'<br>')}</p>`).join('');
+}
+
+/* =========================================================
+   STATE
+========================================================= */
+let STATE = {
+  loaded:false,
+  accounts:[], articles:[], staff:[], about:null, settings:null,
+  currentUser:null,        // {username, displayName, role}
+  route:{ page:'home', param:null },
+  adminTab:'articles',
+  newsFilter:'All',
+  toast:null,
+  showLogin:false,
+  showInstaller:false,
+  loginError:'',
+  editingArticle:null,     // article object being edited, or 'new'
+  editingStaff:null,
+  editingUser:null,
+};
+
+function render(){ App(document.getElementById('app')); }
+function setState(patch){ Object.assign(STATE, patch); render(); }
+function go(page, param){ setState({ route:{page, param}, editingArticle:null, editingStaff:null, editingUser:null }); window.scrollTo(0,0); }
+function showToast(msg){ setState({toast:msg}); setTimeout(()=>{ STATE.toast=null; render(); }, 2600); }
+
+/* =========================================================
+   SEED DATA
+========================================================= */
+const DEFAULT_SETTINGS = {
+  name:'The Ridgeview Beacon',
+  tagline:'Student Voice of Ridgeview High School — Est. 1987',
+  town:'Ridgeview',
+  contactEmail:'beacon@ridgeview.k12.edu',
+  contactRoom:'Room 214, Journalism Wing',
+  meetingTimes:'Mondays & Thursdays, 3:15–4:30 PM'
+};
+const DEFAULT_ABOUT = {
+  mission:`The Ridgeview Beacon is the official student-run news publication of Ridgeview High School. Founded in 1987, we report on campus life, student achievement, local issues, and the topics that matter to our school community.\n\nWe are committed to accurate, fair, and independent reporting. Our newsroom is staffed entirely by students, with an emphasis on developing real journalistic skill: interviewing, fact-checking, editing, and design.`,
+  history:`The Beacon began as a mimeographed one-page bulletin handed out at lunch. Over three decades it has grown into a full publication covering sports, arts, academics, and student government, distributed both in print and online.`,
+  join:`Interested students of any grade are welcome to join. No prior experience is required — just curiosity and a willingness to meet deadlines. Contact the faculty advisor or attend a newsroom meeting to get started.`
+};
+const SEED_ARTICLES = [
+  {
+    id:'seed1', title:'Student Council Passes New Club Funding Proposal',
+    dek:'The measure triples the annual budget available to student-run organizations.',
+    category:'News', author:'Staff Report', date:new Date(Date.now()-2*86400000).toISOString(),
+    image:'', featured:true,
+    body:`In a unanimous vote Tuesday, the Ridgeview Student Council approved a proposal that will triple the funding pool available to student clubs for the coming school year.\n\nThe change comes after months of lobbying from club leaders who said existing funds were insufficient to cover basic materials, travel, and event costs.\n\n"This is going to make a real difference for smaller clubs that never had much of a budget to begin with," said Council Treasurer Maya Chen. The new funding structure takes effect at the start of next semester.`
+  },
+  {
+    id:'seed2', title:'Girls Soccer Advances to Regional Finals',
+    dek:'A last-minute goal in the semifinal sends the Wolves to their first regional final in a decade.',
+    category:'Sports', author:'Staff Report', date:new Date(Date.now()-5*86400000).toISOString(),
+    image:'', featured:false,
+    body:`The Ridgeview girls soccer team punched its ticket to the regional finals Friday night with a dramatic 2-1 win in the closing minute of the semifinal match.\n\nIt marks the program's first appearance in a regional final since 2015. The team will travel to face top-seeded Lincoln Park next week.`
+  },
+  {
+    id:'seed3', title:'Fall Play Auditions Announced for "Our Town"',
+    dek:'The drama department opens auditions to all grade levels next month.',
+    category:'Arts', author:'Staff Report', date:new Date(Date.now()-8*86400000).toISOString(),
+    image:'', featured:false,
+    body:`The Ridgeview Drama Department announced open auditions for this fall's production of Thornton Wilder's "Our Town," set to take place in the auditorium next month.\n\nDirector Ms. Alvarez said the production will lean into a minimalist staging style true to the original 1938 script. Auditions are open to students of all grade levels, with no experience required.`
+  }
+];
+const SEED_STAFF = [
+  { id:'s1', name:'Jordan Lee', role:'Editor-in-Chief', grade:'Senior', bio:'Jordan oversees editorial direction and final review for every issue.', photo:'' },
+  { id:'s2', name:'Amara Osei', role:'News Editor', grade:'Junior', bio:'Amara covers campus policy and student government.', photo:'' },
+  { id:'s3', name:'Diego Ramirez', role:'Sports Editor', grade:'Senior', bio:'Diego leads coverage of all Ridgeview athletics.', photo:'' },
+  { id:'s4', name:'Priya Nair', role:'Arts & Culture Editor', grade:'Sophomore', bio:'Priya writes about drama, music, and student art.', photo:'' },
+  { id:'s5', name:'Ms. Elena Alvarez', role:'Faculty Advisor', grade:'Staff', bio:'Ms. Alvarez has advised the Beacon since 2016 and teaches AP Journalism.', photo:'' }
+];
+
+/* =========================================================
+   BOOTSTRAP
+========================================================= */
+async function boot(){
+  const [accounts, articles, staff, about, settings] = await Promise.all([
+    getShared(K.accounts, null),
+    getShared(K.articles, null),
+    getShared(K.staff, null),
+    getShared(K.about, null),
+    getShared(K.settings, null),
+  ]);
+
+  STATE.articles = articles || SEED_ARTICLES;
+  if(!articles) setShared(K.articles, STATE.articles);
+
+  STATE.staff = staff || SEED_STAFF;
+  if(!staff) setShared(K.staff, STATE.staff);
+
+  STATE.about = about || DEFAULT_ABOUT;
+  if(!about) setShared(K.about, STATE.about);
+
+  STATE.settings = settings || DEFAULT_SETTINGS;
+  if(!settings) setShared(K.settings, STATE.settings);
+
+  STATE.accounts = accounts || [];
+  STATE.loaded = true;
+  STATE.showInstaller = STATE.accounts.length === 0;
+
+  // Firebase keeps people signed in across visits. When auth state
+  // resolves, match the signed-in Firebase user to their role record.
+  auth.onAuthStateChanged(fbUser=>{
+    if(fbUser){
+      const acct = STATE.accounts.find(a=>a.id===fbUser.uid);
+      if(acct) STATE.currentUser = {username:acct.username, displayName:acct.displayName, role:acct.role};
+    } else {
+      STATE.currentUser = null;
+    }
+    render();
+  });
+
+  render();
+}
+
+/* =========================================================
+   AUTH
+========================================================= */
+// NOTE ON A REAL FIREBASE LIMITATION:
+// Creating a new account from the client SDK automatically signs the
+// browser into that brand-new account (this is how Firebase's client
+// SDK works without a server). So after an admin adds a new staff
+// member, the admin will be signed out and should sign back in.
+// A production setup would use a Cloud Function to avoid this, which
+// is outside what a static HTML file can do on its own.
+async function createAccount({username, password, displayName, role}){
+  const email = usernameToEmail(username);
+  const cred = await auth.createUserWithEmailAndPassword(email, password);
+  const acct = { id:cred.user.uid, username:username.trim().toLowerCase(), displayName:displayName.trim(), role };
+  const next = [...STATE.accounts, acct];
+  STATE.accounts = next;
+  await setShared(K.accounts, next);
+  return acct;
+}
+
+async function handleInstallerSubmit(e){
+  e.preventDefault();
+  const f = e.target;
+  const username = f.username.value.trim();
+  const displayName = f.displayName.value.trim();
+  const password = f.password.value;
+  if(!username || !displayName || password.length < 6){
+    setState({ loginError:'Please fill every field. Password must be at least 6 characters.' });
+    return;
+  }
+  try{
+    const acct = await createAccount({username, password, displayName, role:'admin'});
+    setState({ showInstaller:false, currentUser:{username:acct.username, displayName:acct.displayName, role:acct.role}, loginError:'' });
+    showToast('Admin account created. Welcome, '+acct.displayName+'.');
+  }catch(err){ setState({ loginError: err.message }); }
+}
+
+async function handleLoginSubmit(e){
+  e.preventDefault();
+  const f = e.target;
+  const username = f.username.value.trim();
+  const password = f.password.value;
+  try{
+    const cred = await auth.signInWithEmailAndPassword(usernameToEmail(username), password);
+    const acct = STATE.accounts.find(a=>a.id===cred.user.uid);
+    if(!acct){ setState({loginError:"Signed in, but no role is on file for this account. Ask an admin to add you."}); return; }
+    setState({ showLogin:false, currentUser:{username:acct.username, displayName:acct.displayName, role:acct.role}, loginError:'' });
+    showToast('Signed in as '+acct.displayName);
+  }catch(err){ setState({loginError:'Incorrect username or password.'}); }
+}
+
+function logout(){
+  auth.signOut();
+  setState({ currentUser:null });
+  go('home');
+  showToast('Signed out.');
+}
+
+/* =========================================================
+   CONTENT MUTATIONS
+========================================================= */
+async function saveArticle(data){
+  let next;
+  if(data.id){
+    next = STATE.articles.map(a=> a.id===data.id ? {...a, ...data} : a);
+  } else {
+    next = [{...data, id:uid(), date:data.date||new Date().toISOString()}, ...STATE.articles];
+  }
+  STATE.articles = next;
+  await setShared(K.articles, next);
+}
+async function deleteArticle(id){
+  STATE.articles = STATE.articles.filter(a=>a.id!==id);
+  await setShared(K.articles, STATE.articles);
+}
+async function saveStaffMember(data){
+  let next;
+  if(data.id){ next = STATE.staff.map(s=> s.id===data.id ? {...s, ...data} : s); }
+  else{ next = [...STATE.staff, {...data, id:uid()}]; }
+  STATE.staff = next;
+  await setShared(K.staff, next);
+}
+async function deleteStaffMember(id){
+  STATE.staff = STATE.staff.filter(s=>s.id!==id);
+  await setShared(K.staff, STATE.staff);
+}
+async function saveAbout(data){ STATE.about = data; await setShared(K.about, data); }
+async function saveSettings(data){ STATE.settings = data; await setShared(K.settings, data); }
+// This revokes the person's role/access inside the site. It does not
+// delete their underlying Firebase login, which would need a Cloud
+// Function or the Firebase console — a static HTML file can only ever
+// manage its own signed-in account, not other people's accounts.
+async function deleteUser(id){
+  if(STATE.accounts.length<=1){ showToast("Can't remove the only account."); return; }
+  STATE.accounts = STATE.accounts.filter(a=>a.id!==id);
+  await setShared(K.accounts, STATE.accounts);
+}
+
+/* =========================================================
+   UI: SHARED PIECES
+========================================================= */
+function isAdmin(){ return STATE.currentUser && STATE.currentUser.role==='admin'; }
+function isStaffOrAdmin(){ return STATE.currentUser && (STATE.currentUser.role==='admin'||STATE.currentUser.role==='staff'); }
+
+function Masthead(){
+  const s = STATE.settings;
+  const today = new Date().toLocaleDateString('en-US',{weekday:'long', month:'long', day:'numeric', year:'numeric'});
+  return `
+  <div class="masthead-top">
+    <span>${esc(today)}</span>
+    <span>${esc(s.town)} · Vol. ${new Date().getFullYear()-1987}</span>
+  </div>
+  <div class="masthead">
+    <div class="masthead-inner">
+      <div class="logo-slot">LOGO</div>
+      <div class="masthead-text">
+        <h1><a href="#" data-nav="home">${esc(s.name)}</a></h1>
+        <div class="tagline">${esc(s.tagline)}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function Nav(){
+  const items = [['home','Front Page'],['news','News'],['about','About Us'],['staff','Staff'],['contact','Contact']];
+  const cur = STATE.route.page;
+  let html = '<nav>';
+  items.forEach(([key,label])=>{
+    html += `<button data-nav="${key}" class="${cur===key?'active':''}">${label}</button>`;
+  });
+  html += '<div class="nav-spacer"></div>';
+  if(isStaffOrAdmin()){
+    html += `<button data-nav="admin" class="nav-admin-link ${cur==='admin'?'active':''}">Newsroom ✎</button>`;
+  } else {
+    html += `<button data-action="open-login" class="nav-admin-link">Staff Login</button>`;
+  }
+  html += '</nav>';
+  return html;
+}
+
+function AdminBar(){
+  if(!isStaffOrAdmin()) return '';
+  const u = STATE.currentUser;
+  return `
+  <div class="admin-bar"><div class="admin-bar-inner">
+    <span>Signed in as ${esc(u.displayName)}</span>
+    <span class="role-badge">${esc(u.role)}</span>
+    <div class="spacer"></div>
+    <button data-nav="admin">Newsroom</button>
+    <button data-action="logout">Sign out</button>
+  </div></div>`;
+}
+
+function Footer(){
+  const s = STATE.settings;
+  return `<footer>
+    ${esc(s.name)} — ${esc(s.tagline)}<br>
+    ${isStaffOrAdmin() ? '' : '<button data-action="open-login">Staff &amp; Admin Login</button>'}
+  </footer>`;
+}
+
+function Toast(){
+  if(!STATE.toast) return '';
+  return `<div class="toast">${esc(STATE.toast)}</div>`;
+}
+
+/* =========================================================
+   PAGES: PUBLIC
+========================================================= */
+function articlesSorted(){ return [...STATE.articles].sort((a,b)=> new Date(b.date)-new Date(a.date)); }
+
+function PageHome(){
+  const all = articlesSorted();
+  if(all.length===0){ return `<div class="empty-note">No stories published yet. Check back soon.</div>`; }
+  const lead = all.find(a=>a.featured) || all[0];
+  const rest = all.filter(a=>a.id!==lead.id).slice(0,5);
+  return `
+  <div class="front-grid">
+    <div class="story-card" data-nav="article" data-param="${lead.id}">
+      <span class="kicker">${esc(lead.category)}</span>
+      <h2 class="lead-headline">${esc(lead.title)}</h2>
+      <div class="lead-dek">${esc(lead.dek)}</div>
+      <div class="byline">By ${esc(lead.author)} · ${fmtDate(lead.date)}</div>
+      ${lead.image ? `<img class="lead-image" src="${esc(lead.image)}" alt="">` : ''}
+      <div class="lead-body">${paragraphs(lead.body).split('</p>').slice(0,2).join('</p>')}</div>
+    </div>
+    <div class="rail">
+      <h3 class="rail-title">More Stories</h3>
+      ${rest.map(a=>`
+        <div class="rail-item" data-nav="article" data-param="${a.id}">
+          <span class="kicker">${esc(a.category)}</span>
+          <h4>${esc(a.title)}</h4>
+          <div class="byline">${fmtDate(a.date)}</div>
+        </div>`).join('') || '<p class="hint">More stories will appear here.</p>'}
+    </div>
+  </div>`;
+}
+
+function PageNews(){
+  const cats = ['All', ...Array.from(new Set(STATE.articles.map(a=>a.category)))];
+  const list = articlesSorted().filter(a=> STATE.newsFilter==='All' || a.category===STATE.newsFilter);
+  return `
+  <h2 class="page-title">News Archive</h2>
+  <div class="page-sub">Every story published by The Beacon staff.</div>
+  <div class="filters">
+    ${cats.map(c=>`<button data-action="filter" data-param="${esc(c)}" class="${STATE.newsFilter===c?'active':''}">${esc(c)}</button>`).join('')}
+  </div>
+  ${list.length===0? `<div class="empty-note">No stories in this category yet.</div>` : `
+  <div class="news-grid">
+    ${list.map(a=>`
+      <div class="news-card story-card" data-nav="article" data-param="${a.id}">
+        ${a.image?`<img src="${esc(a.image)}" alt="">`:`<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='3'/%3E" alt="">`}
+        <span class="kicker">${esc(a.category)}</span>
+        <h4>${esc(a.title)}</h4>
+        <div class="dek">${esc(a.dek)}</div>
+        <div class="byline">${esc(a.author)} · ${fmtDate(a.date)}</div>
+      </div>`).join('')}
+  </div>`}`;
+}
+
+function PageArticle(id){
+  const a = STATE.articles.find(x=>x.id===id);
+  if(!a) return `<div class="empty-note">Story not found.</div><button class="btn secondary" data-nav="news">Back to News</button>`;
+  return `
+  <button class="back-link" data-nav="news">← Back to News</button>
+  <div class="article-head">
+    <span class="kicker">${esc(a.category)}</span>
+    <h1 class="article-title">${esc(a.title)}</h1>
+    <div class="article-dek">${esc(a.dek)}</div>
+    <div class="article-meta">By ${esc(a.author)} · Published ${fmtDate(a.date)}</div>
+  </div>
+  ${a.image?`<img class="article-image" src="${esc(a.image)}" alt="">`:''}
+  <div class="article-body">${paragraphs(a.body)}</div>`;
+}
+
+function PageAbout(){
+  const ab = STATE.about;
+  return `
+  <h2 class="page-title">About Us</h2>
+  <div class="page-sub">Who we are and what we stand for.</div>
+  <div class="about-body">
+    <div class="group-title">Our Mission</div>
+    ${paragraphs(ab.mission)}
+    <div class="group-title">Our History</div>
+    ${paragraphs(ab.history)}
+    <div class="group-title">Join The Beacon</div>
+    ${paragraphs(ab.join)}
+  </div>`;
+}
+
+function PageStaff(){
+  return `
+  <h2 class="page-title">Members &amp; Staff</h2>
+  <div class="page-sub">The students and advisor behind every issue.</div>
+  <div class="staff-grid">
+    ${STATE.staff.map(s=>`
+      <div class="staff-card">
+        ${s.photo?`<img class="staff-photo" src="${esc(s.photo)}" alt="">`:`<div class="staff-photo" style="display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:34px;color:var(--rule-faint);">${esc((s.name||'?')[0])}</div>`}
+        <div class="staff-name">${esc(s.name)}</div>
+        <div class="staff-role">${esc(s.role)}${s.grade?' · '+esc(s.grade):''}</div>
+        <div class="staff-bio">${esc(s.bio)}</div>
+      </div>`).join('') || '<p class="hint">No staff listed yet.</p>'}
+  </div>`;
+}
+
+function PageContact(){
+  const s = STATE.settings;
+  return `
+  <h2 class="page-title">Contact</h2>
+  <div class="page-sub">Reach the newsroom.</div>
+  <div class="contact-box">
+    <div><span class="label">Email</span>${esc(s.contactEmail)}</div>
+    <div><span class="label">Newsroom</span>${esc(s.contactRoom)}</div>
+    <div><span class="label">Meetings</span>${esc(s.meetingTimes)}</div>
+  </div>`;
+}
+
+/* =========================================================
+   LOGIN / INSTALLER MODALS
+========================================================= */
+function InstallerModal(){
+  return `
+  <div class="overlay" data-action="none">
+    <div class="modal">
+      <h2>Set Up the Newsroom</h2>
+      <div class="sub">No accounts exist yet. Create the first administrator account to manage this site.</div>
+      <form data-form="installer">
+        <div class="field"><label>Your name</label><input name="displayName" required></div>
+        <div class="field"><label>Username</label><input name="username" required autocomplete="off"></div>
+        <div class="field"><label>Password (min 6 characters)</label><input name="password" type="password" required minlength="6"></div>
+        ${STATE.loginError?`<div class="error-msg">${esc(STATE.loginError)}</div>`:''}
+        <button class="btn" type="submit" style="margin-top:6px;">Create Admin Account</button>
+      </form>
+    </div>
+  </div>`;
+}
+
+function LoginModal(){
+  return `
+  <div class="overlay" data-action="close-login">
+    <div class="modal" data-stop="1">
+      <button class="modal-close" data-action="close-login">Close ✕</button>
+      <h2>Staff &amp; Admin Login</h2>
+      <div class="sub">Sign in to write, edit, or manage The Beacon.</div>
+      <form data-form="login">
+        <div class="field"><label>Username</label><input name="username" required autocomplete="username"></div>
+        <div class="field"><label>Password</label><input name="password" type="password" required autocomplete="current-password"></div>
+        ${STATE.loginError?`<div class="error-msg">${esc(STATE.loginError)}</div>`:''}
+        <button class="btn" type="submit" style="margin-top:6px;">Sign In</button>
+      </form>
+    </div>
+  </div>`;
+}
+
+/* =========================================================
+   ADMIN / NEWSROOM
+========================================================= */
+function PageAdmin(){
+  if(!isStaffOrAdmin()){
+    return `<div class="empty-note">You must sign in to access the newsroom.</div>
+    <button class="btn" data-action="open-login">Staff Login</button>`;
+  }
+  const tabs = [['articles','Articles'],['staff','Staff Directory'],['about','About Page']];
+  if(isAdmin()) tabs.push(['settings','Site Settings'], ['users','User Accounts']);
+  return `
+  <h2 class="page-title">Newsroom Dashboard</h2>
+  <div class="page-sub">Signed in as ${esc(STATE.currentUser.displayName)} (${esc(STATE.currentUser.role)})</div>
+  <div class="admin-tabs">
+    ${tabs.map(([k,l])=>`<button data-action="admin-tab" data-param="${k}" class="${STATE.adminTab===k?'active':''}">${l}</button>`).join('')}
+  </div>
+  <div id="admin-panel">${AdminPanel()}</div>`;
+}
+
+function AdminPanel(){
+  switch(STATE.adminTab){
+    case 'articles': return AdminArticles();
+    case 'staff': return AdminStaff();
+    case 'about': return AdminAbout();
+    case 'settings': return isAdmin()? AdminSettings() : '<p class="hint">Admins only.</p>';
+    case 'users': return isAdmin()? AdminUsers() : '<p class="hint">Admins only.</p>';
+    default: return '';
+  }
+}
+
+function AdminArticles(){
+  if(STATE.editingArticle){
+    const a = STATE.editingArticle === 'new' ? {title:'',dek:'',category:'News',author:STATE.currentUser.displayName,body:'',image:'',featured:false} : STATE.editingArticle;
+    return `
+    <div class="admin-card">
+      <h3 style="font-size:19px;margin-bottom:16px;">${a.id?'Edit Story':'Write New Story'}</h3>
+      <form data-form="article">
+        <input type="hidden" name="id" value="${a.id||''}">
+        <div class="field"><label>Headline</label><input name="title" required value="${esc(a.title)}"></div>
+        <div class="field"><label>Deck / subtitle</label><input name="dek" value="${esc(a.dek)}"></div>
+        <div class="field-row">
+          <div class="field"><label>Category</label>
+            <select name="category">
+              ${['News','Sports','Arts','Opinion','Features'].map(c=>`<option ${a.category===c?'selected':''}>${c}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field"><label>Byline</label><input name="author" value="${esc(a.author)}"></div>
+        </div>
+        <div class="field"><label>Image URL (optional)</label><input name="image" value="${esc(a.image)}" placeholder="https://...">
+          <div class="hint">Paste a link to an image hosted elsewhere — direct file upload isn't available in this environment.</div>
+        </div>
+        <div class="field"><label>Story text</label><textarea name="body" rows="10" required>${esc(a.body)}</textarea>
+          <div class="hint">Separate paragraphs with a blank line.</div>
+        </div>
+        <div class="field"><label><input type="checkbox" name="featured" ${a.featured?'checked':''} style="width:auto;margin-right:8px;">Feature on front page</label></div>
+        <div class="row-actions">
+          <button class="btn" type="submit">Save Story</button>
+          <button class="btn secondary" type="button" data-action="cancel-edit-article">Cancel</button>
+        </div>
+      </form>
+    </div>`;
+  }
+  const list = articlesSorted();
+  return `
+  <button class="btn" data-action="new-article" style="margin-bottom:18px;">+ New Story</button>
+  <table class="admin-table">
+    <tr><th>Headline</th><th>Category</th><th>Author</th><th>Date</th><th></th></tr>
+    ${list.map(a=>`
+      <tr>
+        <td>${esc(a.title)}${a.featured?' <span class="badge">Featured</span>':''}</td>
+        <td>${esc(a.category)}</td><td>${esc(a.author)}</td><td>${fmtDate(a.date)}</td>
+        <td class="row-actions">
+          <button class="btn small secondary" data-action="edit-article" data-param="${a.id}">Edit</button>
+          <button class="btn small danger" data-action="delete-article" data-param="${a.id}">Delete</button>
+        </td>
+      </tr>`).join('') || '<tr><td colspan="5" class="hint">No stories yet.</td></tr>'}
+  </table>`;
+}
+
+function AdminStaff(){
+  if(STATE.editingStaff){
+    const s = STATE.editingStaff==='new' ? {name:'',role:'',grade:'',bio:'',photo:''} : STATE.editingStaff;
+    return `
+    <div class="admin-card">
+      <h3 style="font-size:19px;margin-bottom:16px;">${s.id?'Edit Member':'Add Member'}</h3>
+      <form data-form="staff">
+        <input type="hidden" name="id" value="${s.id||''}">
+        <div class="field"><label>Name</label><input name="name" required value="${esc(s.name)}"></div>
+        <div class="field-row">
+          <div class="field"><label>Role / Title</label><input name="role" required value="${esc(s.role)}"></div>
+          <div class="field"><label>Grade / Status</label><input name="grade" value="${esc(s.grade)}" placeholder="e.g. Senior, Staff"></div>
+        </div>
+        <div class="field"><label>Photo URL (optional)</label><input name="photo" value="${esc(s.photo)}" placeholder="https://..."></div>
+        <div class="field"><label>Short bio</label><textarea name="bio" rows="3">${esc(s.bio)}</textarea></div>
+        <div class="row-actions">
+          <button class="btn" type="submit">Save</button>
+          <button class="btn secondary" type="button" data-action="cancel-edit-staff">Cancel</button>
+        </div>
+      </form>
+    </div>`;
+  }
+  return `
+  <button class="btn" data-action="new-staff" style="margin-bottom:18px;">+ Add Member</button>
+  <table class="admin-table">
+    <tr><th>Name</th><th>Role</th><th>Grade</th><th></th></tr>
+    ${STATE.staff.map(s=>`
+      <tr>
+        <td>${esc(s.name)}</td><td>${esc(s.role)}</td><td>${esc(s.grade)}</td>
+        <td class="row-actions">
+          <button class="btn small secondary" data-action="edit-staff" data-param="${s.id}">Edit</button>
+          <button class="btn small danger" data-action="delete-staff" data-param="${s.id}">Remove</button>
+        </td>
+      </tr>`).join('') || '<tr><td colspan="4" class="hint">No staff listed yet.</td></tr>'}
+  </table>`;
+}
+
+function AdminAbout(){
+  const ab = STATE.about;
+  return `
+  <div class="admin-card" style="max-width:720px;">
+    <form data-form="about">
+      <div class="field"><label>Mission statement</label><textarea name="mission" rows="5">${esc(ab.mission)}</textarea></div>
+      <div class="field"><label>History</label><textarea name="history" rows="4">${esc(ab.history)}</textarea></div>
+      <div class="field"><label>How to join</label><textarea name="join" rows="4">${esc(ab.join)}</textarea></div>
+      <button class="btn" type="submit">Save About Page</button>
+    </form>
+  </div>`;
+}
+
+function AdminSettings(){
+  const s = STATE.settings;
+  return `
+  <div class="admin-card">
+    <form data-form="settings">
+      <div class="field"><label>Publication name</label><input name="name" value="${esc(s.name)}"></div>
+      <div class="field"><label>Tagline</label><input name="tagline" value="${esc(s.tagline)}"></div>
+      <div class="field"><label>Town / school district</label><input name="town" value="${esc(s.town)}"></div>
+      <div class="field"><label>Contact email</label><input name="contactEmail" value="${esc(s.contactEmail)}"></div>
+      <div class="field"><label>Newsroom location</label><input name="contactRoom" value="${esc(s.contactRoom)}"></div>
+      <div class="field"><label>Meeting times</label><input name="meetingTimes" value="${esc(s.meetingTimes)}"></div>
+      <button class="btn" type="submit">Save Settings</button>
+    </form>
+  </div>`;
+}
+
+function AdminUsers(){
+  if(STATE.editingUser){
+    return `
+    <div class="admin-card">
+      <h3 style="font-size:19px;margin-bottom:16px;">Add User Account</h3>
+      <form data-form="user">
+        <div class="field"><label>Full name</label><input name="displayName" required></div>
+        <div class="field"><label>Username</label><input name="username" required autocomplete="off"></div>
+        <div class="field"><label>Temporary password (min 6 chars)</label><input name="password" type="password" required minlength="6"></div>
+        <div class="field"><label>Role</label>
+          <select name="role"><option value="staff">Staff (can write/edit content)</option><option value="admin">Admin (full control)</option></select>
+        </div>
+        <div class="row-actions">
+          <button class="btn" type="submit">Create Account</button>
+          <button class="btn secondary" type="button" data-action="cancel-edit-user">Cancel</button>
+        </div>
+      </form>
+    </div>`;
+  }
+  return `
+  <button class="btn" data-action="new-user" style="margin-bottom:18px;">+ Add User</button>
+  <table class="admin-table">
+    <tr><th>Name</th><th>Username</th><th>Role</th><th></th></tr>
+    ${STATE.accounts.map(u=>`
+      <tr>
+        <td>${esc(u.displayName)}</td><td class="mono">${esc(u.username)}</td>
+        <td><span class="badge ${u.role}">${esc(u.role)}</span></td>
+        <td class="row-actions">
+          ${STATE.accounts.length>1?`<button class="btn small danger" data-action="delete-user" data-param="${u.id}">Remove</button>`:'<span class="hint">only account</span>'}
+        </td>
+      </tr>`).join('')}
+  </table>
+  <p class="hint" style="margin-top:14px;">Heads up: creating a new account will sign you into that account automatically (a Firebase quirk) — you'll need to sign back in as yourself afterward. "Remove" revokes a person's access inside the site but doesn't delete their underlying login.</p>`;
+}
+
+/* =========================================================
+   ROOT RENDER
+========================================================= */
+function App(root){
+  if(!STATE.loaded){
+    root.innerHTML = `<div class="loading-note">Loading the newsroom…</div>`;
+    return;
+  }
+  let page = '';
+  switch(STATE.route.page){
+    case 'home': page = PageHome(); break;
+    case 'news': page = PageNews(); break;
+    case 'article': page = PageArticle(STATE.route.param); break;
+    case 'about': page = PageAbout(); break;
+    case 'staff': page = PageStaff(); break;
+    case 'contact': page = PageContact(); break;
+    case 'admin': page = PageAdmin(); break;
+    default: page = PageHome();
+  }
+  root.innerHTML = `
+    ${AdminBar()}
+    ${Masthead()}
+    ${Nav()}
+    <main>${page}</main>
+    ${Footer()}
+    ${STATE.showInstaller ? InstallerModal() : ''}
+    ${(STATE.showLogin && !STATE.showInstaller) ? LoginModal() : ''}
+    ${Toast()}
+  `;
+  bindEvents(root);
+}
+
+/* =========================================================
+   EVENT BINDING
+========================================================= */
+function bindEvents(root){
+  root.querySelectorAll('[data-nav]').forEach(el=>{
+    el.addEventListener('click', e=>{
+      e.preventDefault();
+      go(el.getAttribute('data-nav'), el.getAttribute('data-param'));
+    });
+  });
+  root.querySelectorAll('[data-action]').forEach(el=>{
+    el.addEventListener('click', e=>{
+      const action = el.getAttribute('data-action');
+      const param = el.getAttribute('data-param');
+      if(action==='none' && e.target!==el) return;
+      if(action==='none'){ return; } // click on overlay backdrop itself, ignore (installer non-dismissable)
+      e.stopPropagation();
+      handleAction(action, param, e);
+    });
+  });
+  const modalInner = root.querySelector('.modal');
+  if(modalInner) modalInner.addEventListener('click', e=>e.stopPropagation());
+
+  root.querySelectorAll('form[data-form]').forEach(f=>{
+    f.addEventListener('submit', e=>{
+      const kind = f.getAttribute('data-form');
+      if(kind==='installer') handleInstallerSubmit(e);
+      else if(kind==='login') handleLoginSubmit(e);
+      else if(kind==='article') handleArticleSubmit(e);
+      else if(kind==='staff') handleStaffSubmit(e);
+      else if(kind==='about') handleAboutSubmit(e);
+      else if(kind==='settings') handleSettingsSubmit(e);
+      else if(kind==='user') handleUserSubmit(e);
+    });
+  });
+}
+
+function handleAction(action, param, e){
+  if(action==='open-login'){ setState({showLogin:true, loginError:''}); }
+  else if(action==='close-login'){ setState({showLogin:false, loginError:''}); }
+  else if(action==='logout'){ logout(); }
+  else if(action==='filter'){ setState({newsFilter:param}); }
+  else if(action==='admin-tab'){ setState({adminTab:param, editingArticle:null, editingStaff:null, editingUser:null}); }
+  else if(action==='new-article'){ setState({editingArticle:'new'}); }
+  else if(action==='edit-article'){ setState({editingArticle: STATE.articles.find(a=>a.id===param)}); }
+  else if(action==='cancel-edit-article'){ setState({editingArticle:null}); }
+  else if(action==='delete-article'){ if(confirm('Delete this story? This cannot be undone.')){ deleteArticle(param).then(()=>{ setState({}); showToast('Story deleted.'); }); } }
+  else if(action==='new-staff'){ setState({editingStaff:'new'}); }
+  else if(action==='edit-staff'){ setState({editingStaff: STATE.staff.find(s=>s.id===param)}); }
+  else if(action==='cancel-edit-staff'){ setState({editingStaff:null}); }
+  else if(action==='delete-staff'){ if(confirm('Remove this staff member?')){ deleteStaffMember(param).then(()=>{ setState({}); showToast('Removed.'); }); } }
+  else if(action==='new-user'){ setState({editingUser:'new'}); }
+  else if(action==='cancel-edit-user'){ setState({editingUser:null}); }
+  else if(action==='delete-user'){ if(confirm('Remove this account?')){ deleteUser(param).then(()=>{ setState({}); showToast('Account removed.'); }); } }
+}
+
+function handleArticleSubmit(e){
+  e.preventDefault();
+  const f = e.target;
+  const data = {
+    id: f.id.value || undefined,
+    title: f.title.value.trim(),
+    dek: f.dek.value.trim(),
+    category: f.category.value,
+    author: f.author.value.trim() || STATE.currentUser.displayName,
+    body: f.body.value.trim(),
+    image: f.image.value.trim(),
+    featured: f.featured.checked,
+  };
+  if(!data.id) delete data.id;
+  saveArticle(data).then(()=>{ setState({editingArticle:null}); showToast('Story saved.'); });
+}
+function handleStaffSubmit(e){
+  e.preventDefault();
+  const f = e.target;
+  const data = { id:f.id.value||undefined, name:f.name.value.trim(), role:f.role.value.trim(), grade:f.grade.value.trim(), bio:f.bio.value.trim(), photo:f.photo.value.trim() };
+  if(!data.id) delete data.id;
+  saveStaffMember(data).then(()=>{ setState({editingStaff:null}); showToast('Saved.'); });
+}
+function handleAboutSubmit(e){
+  e.preventDefault();
+  const f = e.target;
+  saveAbout({ mission:f.mission.value.trim(), history:f.history.value.trim(), join:f.join.value.trim() })
+    .then(()=>{ showToast('About page updated.'); render(); });
+}
+function handleSettingsSubmit(e){
+  e.preventDefault();
+  const f = e.target;
+  saveSettings({
+    name:f.name.value.trim(), tagline:f.tagline.value.trim(), town:f.town.value.trim(),
+    contactEmail:f.contactEmail.value.trim(), contactRoom:f.contactRoom.value.trim(), meetingTimes:f.meetingTimes.value.trim()
+  }).then(()=>{ showToast('Settings updated.'); render(); });
+}
+async function handleUserSubmit(e){
+  e.preventDefault();
+  const f = e.target;
+  const username = f.username.value.trim().toLowerCase();
+  if(STATE.accounts.some(a=>a.username===username)){ alert('That username is already taken.'); return; }
+  await createAccount({ username, password:f.password.value, displayName:f.displayName.value.trim(), role:f.role.value });
+  setState({editingUser:null});
+  showToast('Account created.');
+}
+
+boot();
+})();
+</script>
+</body>
+</html>
